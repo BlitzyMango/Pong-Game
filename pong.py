@@ -1,38 +1,49 @@
-#Welcome to THE PONG GAME
+# Welcome to THE PONG GAME
+# Made by Eddie Elvira
+# Visit www.github.com/blitzymango for project description and a future README file
 
 import random
 import pygame
 import tkinter as tk
 from tkinter import messagebox
 
-class ball(object):
+
+class pong(object):
     l = 750
     w = 500
-    radius = 8
+    r = 8
 
-    def __init__(self, start, color=(255,255,255)):
+    def __init__(self, start=(l//2, w//2), color=(255, 255, 255)):
         self.pos = start
         self.color = color
-        self.dirnx = 1
-        self.dirny = 0
+
+
+class ball(pong):
+    length = pong.l
+    width = pong.w
+    radius = pong.r
 
     def move_ball(self, dirnx, dirny):
         global x_vector, y_vector
-        self.dirnx = dirnx              #dirnx is set equal to inputted x_vector
-        self.dirny = dirny              #dirny is set equal to inputted y_vector
+        self.dirnx = dirnx  # dirnx is set equal to inputted x_vector
+        self.dirny = dirny  # dirny is set equal to inputted y_vector
         self.pos = [self.pos[0] + self.dirnx, self.pos[1] + self.dirny]
 
-        if self.dirnx > 0 and self.pos[0] >= (self.l-self.radius):  #if ball touches right side of screen
-            self.pos[0] = self.l-self.radius-1
+        # if ball touches right side of screen
+        if self.dirnx > 0 and self.pos[0] >= (self.length-self.radius):
+            self.pos[0] = self.length-self.radius-1
             x_vector = -dirnx - random.randint(-5, 5)
-        elif self.dirnx < 0 and self.pos[0] <= self.radius:         #if ball touches left side of screen
+        # if ball touches left side of screen
+        elif self.dirnx < 0 and self.pos[0] <= self.radius:
             self.pos[0] = self.radius + 1
             x_vector = -dirnx - random.randint(-5, 5)
-        elif self.dirny < 0 and self.pos[1] <= self.radius:         #if ball touches top of screen
+        # if ball touches top of screen
+        elif self.dirny < 0 and self.pos[1] <= self.radius:
             self.pos[1] = self.radius + 1
             y_vector = -dirny - random.randint(-5, 5)
-        elif self.dirny > 0 and self.pos[1] >= (self.w-self.radius):  #if ball touches bottom of screen
-            self.pos[1] = self.w-self.radius-1
+        # if ball touches bottom of screen
+        elif self.dirny > 0 and self.pos[1] >= (self.width-self.radius):
+            self.pos[1] = self.width-self.radius-1
             y_vector = -dirny - random.randint(-5, 5)
 
         if x_vector > 25:
@@ -40,7 +51,7 @@ class ball(object):
         elif y_vector > 25:
             y_vector = 25
         elif x_vector == 0:
-            x_vector = random.randint(-2, 2)
+            x_vector = random.randint(-5, 5)
         elif y_vector == 0:
             y_vector = random.randint(-1, 1)
 
@@ -50,51 +61,64 @@ class ball(object):
         j = self.pos[1]  # j represents width
 
         circleCenter = (i*dis, j*dis)
-        pygame.draw.circle(surface, (255,255,255), circleCenter, self.radius)
+        pygame.draw.circle(surface, self.color, circleCenter, self.radius)
 
     def collision(self):
         pass
 
-class paddle(object):
-    length = ball.l
-    width = ball.w
 
-    def __init__(self, start, color = (255,255,255)):
-        self.pos = start
-        self.color = color
-        self.dirny = 0
+class paddle(pong):
+    length = pong.l
+    width = pong.w
 
-    def move_paddle(self):
+    def move_paddle(self, dirny):
         self.dirny = dirny
         self.pos = [self.pos[0], self.pos[1] + self.dirny]
 
-    def draw_paddle(self):
-        dis = self.length // self.width  # integer division between length and width
-        i = self.pos[0]  # i represents length
-        j = self.pos[1]  # j represents width
+    def draw_paddle(self, surface, player1):
+        sep = length // 20  # distance paddle is from wall
+        thickness = length // 35  # thickness of paddle
+        center = width // 3  # initial location of paddle
+        spread = center  # amount of space paddle can use to hit the ball
+
+        if player1:
+            pygame.draw.rect(surface, self.color, (length -
+                             sep - thickness, center, thickness, spread))
+        else:
+            pygame.draw.rect(surface, self.color,
+                             (sep, center, thickness, spread))
+
 
 def redrawWindow(surface):
-    global b
+    global b, p1, p2
+
     surface.fill((0, 0, 0))  # creates a background (black in this case)
     b.draw_ball(surface)
+    p1.draw_paddle(surface, True)
+    p2.draw_paddle(surface, False)
     pygame.display.update()
+
 
 def message_box():
     pass
 
+
 def main():
-    global length, width, b, x_vector, y_vector
+    global length, width, b, x_vector, y_vector, p1, p2
 
     length = 750
     width = 500
-    x_vector = random.randint(5, 20)
+    x_vector = random.randint(10, 20)
     y_vector = random.randint(-10, 10)
 
     flag = True
-    b = ball((375, 250))
+    b = ball()
+    p1 = paddle()
+    p2 = paddle()
 
     pygame.init()
-    win = pygame.display.set_mode((length, width))  # create game and background with length x width size
+    # create game and background with length x width size
+    win = pygame.display.set_mode((length, width))
     redrawWindow(win)
     clock = pygame.time.Clock()
 
@@ -103,9 +127,14 @@ def main():
         clock.tick(30)  # fps limit (lower value = slower)
         b.move_ball(x_vector, y_vector)
 
-        for event in pygame.event.get(): #creates a list of events
-            if event.type == pygame.QUIT: #quit game when the user closes the window
+        for event in pygame.event.get():  # creates a list of events
+            if event.type == pygame.QUIT:  # quit game when the user closes the window
                 pygame.quit()
+                flag = False
+        if not flag:
+            break
 
         redrawWindow(win)
+
+
 main()
