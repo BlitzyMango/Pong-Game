@@ -17,6 +17,17 @@ class pong(object):
         self.pos = start
         self.color = color
 
+    @staticmethod
+    def event_quit() -> bool:
+        for event in pygame.event.get():   # creates a list of events
+            if event.type == pygame.QUIT:  # quit game when the user closes the window
+                pygame.quit()
+                return False
+        return True
+
+    @classmethod
+    def draw():
+        pass
 
 class ball(pong):
     length = pong.l
@@ -57,8 +68,8 @@ class ball(pong):
 
     def draw_ball(self, surface):
         dis = self.l // self.w  # integer division between length and width
-        i = self.pos[0]  # i represents length
-        j = self.pos[1]  # j represents width
+        i = self.pos[0]         # i represents length
+        j = self.pos[1]         # j represents width
 
         circleCenter = (i*dis, j*dis)
         pygame.draw.circle(surface, self.color, circleCenter, self.radius)
@@ -76,10 +87,10 @@ class paddle(pong):
         self.pos = [self.pos[0], self.pos[1] + self.dirny]
 
     def draw_paddle(self, surface, player1):
-        sep = length // 20  # distance paddle is from wall
-        thickness = length // 35  # thickness of paddle
-        center = width // 3  # initial location of paddle
-        spread = center  # amount of space paddle can use to hit the ball
+        sep = length // 20          # distance paddle is from wall
+        thickness = length // 35    # thickness of paddle
+        center = width // 3         # initial location of paddle
+        spread = center             # amount of space paddle can use to hit the ball
 
         if player1:
             pygame.draw.rect(surface, self.color, (length -
@@ -103,7 +114,7 @@ def message_box():
     pass
 
 
-def main():
+if __name__ == '__main__':
     global length, width, b, x_vector, y_vector, p1, p2
 
     length = 750
@@ -123,18 +134,12 @@ def main():
     clock = pygame.time.Clock()
 
     while flag:
-        pygame.time.delay(50)  # 50 milliseconds (lower value = faster)
-        clock.tick(30)  # fps limit (lower value = slower)
+        pygame.time.delay(50)           # 50 milliseconds (lower value = faster)
+        clock.tick(30)                  # fps limit (lower value = slower)
         b.move_ball(x_vector, y_vector)
 
-        for event in pygame.event.get():  # creates a list of events
-            if event.type == pygame.QUIT:  # quit game when the user closes the window
-                pygame.quit()
-                flag = False
-        if not flag:
+        flag = pong().event_quit()      # did the user close the window? If so, terminate program
+        if not flag:                    # if user closed window, break loop too
             break
 
         redrawWindow(win)
-
-
-main()
