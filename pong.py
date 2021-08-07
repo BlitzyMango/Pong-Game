@@ -13,8 +13,7 @@ class pong(object):
     w = 500
     r = 8
 
-    def __init__(self, start=(l//2, w//2), color=(255, 255, 255)):
-        self.pos = start
+    def __init__(self, color=(255, 255, 255)):
         self.color = color
 
     @staticmethod
@@ -24,8 +23,20 @@ class pong(object):
                 pygame.quit()
                 return False
         return True
+    
+    @staticmethod
+    def redrawWindow(surface):
+        global b, p1, p2
 
-    @classmethod
+        surface.fill((0, 0, 0))  # creates a background (black in this case)
+        b.draw_ball(surface)
+        p1.draw_paddle(surface)
+        p2.draw_paddle(surface)
+        pygame.display.update()
+
+    def message_box():
+        pass
+
     def draw():
         pass
 
@@ -34,112 +45,132 @@ class ball(pong):
     width = pong.w
     radius = pong.r
 
-    def move_ball(self, dirnx, dirny):
-        global x_vector, y_vector
-        self.dirnx = dirnx  # dirnx is set equal to inputted x_vector
-        self.dirny = dirny  # dirny is set equal to inputted y_vector
-        self.pos = [self.pos[0] + self.dirnx, self.pos[1] + self.dirny]
+    def __init__(self):
+        super().__init__()
+        self.pos = [length//2, width//2]
+        self.dirnx = 3
+        self.dirny = 3
+
+    def move_ball(self):
+        self.dirnx = ball.speed_limit(self.dirnx)
+        self.dirny = ball.speed_limit(self.dirny)
 
         # if ball touches right side of screen
         if self.dirnx > 0 and self.pos[0] >= (self.length-self.radius):
-            self.pos[0] = self.length-self.radius-1
-            x_vector = -dirnx - random.randint(-5, 5)
+            self.dirnx = 0
         # if ball touches left side of screen
-        elif self.dirnx < 0 and self.pos[0] <= self.radius:
-            self.pos[0] = self.radius + 1
-            x_vector = -dirnx - random.randint(-5, 5)
+        elif self.dirnx < 0 and self.pos[0] <= (self.radius):
+            self.dirnx = 0
         # if ball touches top of screen
-        elif self.dirny < 0 and self.pos[1] <= self.radius:
-            self.pos[1] = self.radius + 1
-            y_vector = -dirny - random.randint(-5, 5)
+        elif self.dirny < 0 and self.pos[1] <= (self.radius+self.dirny):
+            self.dirny = -self.dirny - random.randint(-1, 1)
         # if ball touches bottom of screen
-        elif self.dirny > 0 and self.pos[1] >= (self.width-self.radius):
-            self.pos[1] = self.width-self.radius-1
-            y_vector = -dirny - random.randint(-5, 5)
+        elif self.dirny > 0 and self.pos[1] >= (self.width-self.radius-self.dirny):
+            self.dirny = -self.dirny - random.randint(-1, 1)
 
-        if x_vector > 25:
-            x_vector = 25
-        elif y_vector > 25:
-            y_vector = 25
-        elif x_vector == 0:
-            x_vector = random.randint(-5, 5)
-        elif y_vector == 0:
-            y_vector = random.randint(-1, 1)
+        self.pos = [self.pos[0] + self.dirnx, self.pos[1] + self.dirny]
+    
+    @staticmethod
+    def speed_limit(velocity) -> int:
+        if velocity > 7:
+            velocity = 7
+        elif velocity < -7:
+            velocity = -7
+        elif velocity == 0:
+            velocity = random.randint(-1, 1)
+        return velocity
 
     def draw_ball(self, surface):
-        dis = self.l // self.w  # integer division between length and width
-        i = self.pos[0]         # i represents length
-        j = self.pos[1]         # j represents width
-
-        circleCenter = (i*dis, j*dis)
+        circleCenter = (self.pos[0], self.pos[1])
         pygame.draw.circle(surface, self.color, circleCenter, self.radius)
 
-    def collision(self):
-        pass
+    def collision(self, paddle_location, paddle_length, paddle_width, player1):
+        x_ball = self.pos[0]
+        y_ball = self.pos[1]
 
+        x_front = paddle_location[0]
+        y_topleft = paddle_location[1]
+        y_bottomleft = y_topleft + paddle_length
+
+        if (y_ball <= y_bottomleft+self.radius) and (y_ball >= y_topleft-self.radius):
+            if player1:
+                if x_ball + self.radius + self.dirnx >= x_front:
+                    self.dirnx = -self.dirnx - random.randint(-1, 1)
+            else:
+                if x_ball - self.radius - self.dirnx < x_front + paddle_width:
+                    self.dirnx = -self.dirnx - random.randint(-1, 1)
+
+        self.pos = [self.pos[0] + self.dirnx, self.pos[1] + self.dirny]
 
 class paddle(pong):
     length = pong.l
     width = pong.w
+    thickness = length // 40             # thickness of paddle
+    spread = width // 5                  # amount of vertical space paddle can use to hit the ball
 
-    def move_paddle(self, dirny):
+    def __init__(self, player1):
+        super().__init__()
+        self.player1 = player1
+
+        if self.player1:
+            self.pos = (self.length-self.thickness*3, width//2-self.spread//2)
+        else:
+            self.pos = (self.thickness*2, width//2-self.spread//2)
+
+    def move_paddle(self, dirny=0):
+        global b
         self.dirny = dirny
         self.pos = [self.pos[0], self.pos[1] + self.dirny]
+        b.collision(self.pos, self.spread, self.thickness, self.player1)  # check if the ball collided with paddle first
 
-    def draw_paddle(self, surface, player1):
-        sep = length // 20          # distance paddle is from wall
-        thickness = length // 35    # thickness of paddle
-        center = width // 3         # initial location of paddle
-        spread = center             # amount of space paddle can use to hit the ball
-
-        if player1:
-            pygame.draw.rect(surface, self.color, (length -
-                             sep - thickness, center, thickness, spread))
+        keys = pygame.key.get_pressed()  # records that a key was pressed
+        if self.player1:
+            if keys[pygame.K_UP]:
+                self.dirny = -width // 40
+            elif keys[pygame.K_DOWN]:
+                self.dirny = width // 40
         else:
-            pygame.draw.rect(surface, self.color,
-                             (sep, center, thickness, spread))
+            if keys[pygame.K_w]:
+                self.dirny = -width // 40
+            elif keys[pygame.K_s]:
+                self.dirny = width // 40
+        self.pos[1] += self.dirny
 
+    def draw_paddle(self, surface):
+        x = self.pos[0]             # x-coordinate of top-left corner of rectangle
+        y = self.pos[1]             # y-coordinate of top-left corner of rectangle
 
-def redrawWindow(surface):
-    global b, p1, p2
-
-    surface.fill((0, 0, 0))  # creates a background (black in this case)
-    b.draw_ball(surface)
-    p1.draw_paddle(surface, True)
-    p2.draw_paddle(surface, False)
-    pygame.display.update()
-
-
-def message_box():
-    pass
-
+        if self.player1:
+            pygame.draw.rect(surface, self.color, (x, y, self.thickness, self.spread))
+        else:
+            pygame.draw.rect(surface, self.color, (x, y, self.thickness, self.spread))
 
 if __name__ == '__main__':
-    global length, width, b, x_vector, y_vector, p1, p2
+    global length, width, b, p1, p2
 
     length = 750
     width = 500
-    x_vector = random.randint(10, 20)
-    y_vector = random.randint(-10, 10)
 
     flag = True
     b = ball()
-    p1 = paddle()
-    p2 = paddle()
+    p1 = paddle(True)
+    p2 = paddle(False)
 
     pygame.init()
     # create game and background with length x width size
     win = pygame.display.set_mode((length, width))
-    redrawWindow(win)
+    pong().redrawWindow(win)
     clock = pygame.time.Clock()
 
     while flag:
-        pygame.time.delay(50)           # 50 milliseconds (lower value = faster)
-        clock.tick(30)                  # fps limit (lower value = slower)
-        b.move_ball(x_vector, y_vector)
+        pygame.time.delay(60)           # 50 milliseconds (lower value = faster)
+        clock.tick(60)                  # fps limit (lower value = slower)
+        b.move_ball()
+        p1.move_paddle()
+        p2.move_paddle()
 
         flag = pong().event_quit()      # did the user close the window? If so, terminate program
         if not flag:                    # if user closed window, break loop too
             break
 
-        redrawWindow(win)
+        pong().redrawWindow(win)
