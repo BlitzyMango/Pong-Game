@@ -13,7 +13,7 @@ class pong(object):
     w = 500
     r = 8
 
-    def __init__(self, color=(255, 255, 255)):
+    def __init__(self, color=(0, 0, 255)):
         self.color = color
 
     @staticmethod
@@ -23,7 +23,7 @@ class pong(object):
                 pygame.quit()
                 return False
         return True
-    
+
     @staticmethod
     def redrawWindow(surface):
         global b, p1, p2
@@ -39,6 +39,7 @@ class pong(object):
 
     def draw():
         pass
+
 
 class ball(pong):
     length = pong.l
@@ -56,11 +57,11 @@ class ball(pong):
         self.dirny = ball.speed_limit(self.dirny)
 
         # if ball touches right side of screen
-        if self.dirnx > 0 and self.pos[0] >= (self.length-self.radius):
-            self.dirnx = 0
+        if self.pos[0] >= (self.length-self.radius-self.dirnx):
+            self.dirnx = -self.dirnx
         # if ball touches left side of screen
-        elif self.dirnx < 0 and self.pos[0] <= (self.radius):
-            self.dirnx = 0
+        elif self.pos[0] <= (self.radius+self.dirnx):
+            self.dirnx = -self.dirnx
         # if ball touches top of screen
         elif self.dirny < 0 and self.pos[1] <= (self.radius+self.dirny):
             self.dirny = -self.dirny - random.randint(-1, 1)
@@ -69,7 +70,7 @@ class ball(pong):
             self.dirny = -self.dirny - random.randint(-1, 1)
 
         self.pos = [self.pos[0] + self.dirnx, self.pos[1] + self.dirny]
-    
+
     @staticmethod
     def speed_limit(velocity) -> int:
         if velocity > 7:
@@ -84,44 +85,67 @@ class ball(pong):
         circleCenter = (self.pos[0], self.pos[1])
         pygame.draw.circle(surface, self.color, circleCenter, self.radius)
 
-    def collision(self, paddle_location, paddle_length, paddle_width, player1):
+    def collision(self, player1):
+        global p1, p2
+        if player1:
+            pad_inst = p1
+        else:
+            pad_inst = p2
+
         x_ball = self.pos[0]
         y_ball = self.pos[1]
 
-        x_front = paddle_location[0]
-        y_topleft = paddle_location[1]
-        y_bottomleft = y_topleft + paddle_length
+        x_front = pad_inst.location()[0]
+        y_topleft = pad_inst.location()[1]
+        y_bottomleft = y_topleft + pad_inst.length()
+
+        ball_reach_right = x_ball + self.radius + self.dirnx
+        ball_reach_left = x_ball - self.radius*2 - self.dirnx
 
         if (y_ball <= y_bottomleft+self.radius) and (y_ball >= y_topleft-self.radius):
             if player1:
-                if x_ball + self.radius + self.dirnx >= x_front:
+                if (ball_reach_right >= x_front) and (ball_reach_right <= x_front + pad_inst.width()):
                     self.dirnx = -self.dirnx - random.randint(-1, 1)
             else:
-                if x_ball - self.radius - self.dirnx < x_front + paddle_width:
+                if (ball_reach_left <= x_front + pad_inst.width()) and (ball_reach_left >= x_front):
                     self.dirnx = -self.dirnx - random.randint(-1, 1)
 
         self.pos = [self.pos[0] + self.dirnx, self.pos[1] + self.dirny]
+
 
 class paddle(pong):
     length = pong.l
     width = pong.w
     thickness = length // 40             # thickness of paddle
-    spread = width // 5                  # amount of vertical space paddle can use to hit the ball
+    # amount of vertical space paddle can use to hit the ball
+    spread = width // 5
 
     def __init__(self, player1):
         super().__init__()
         self.player1 = player1
 
         if self.player1:
-            self.pos = (self.length-self.thickness*3, width//2-self.spread//2)
+            self.pos = (length-self.thickness*3, width//2-self.spread//2)
         else:
             self.pos = (self.thickness*2, width//2-self.spread//2)
+
+    def location(self):
+        return self.pos
+
+    def length(self):
+        return self.spread
+
+    def width(self):
+        return self.thickness
 
     def move_paddle(self, dirny=0):
         global b
         self.dirny = dirny
         self.pos = [self.pos[0], self.pos[1] + self.dirny]
-        b.collision(self.pos, self.spread, self.thickness, self.player1)  # check if the ball collided with paddle first
+
+        b.move_ball()                    # keep ball moving
+        # check if the ball collided with paddle first
+        b.collision(self.player1)
 
         keys = pygame.key.get_pressed()  # records that a key was pressed
         if self.player1:
@@ -137,13 +161,18 @@ class paddle(pong):
         self.pos[1] += self.dirny
 
     def draw_paddle(self, surface):
-        x = self.pos[0]             # x-coordinate of top-left corner of rectangle
-        y = self.pos[1]             # y-coordinate of top-left corner of rectangle
+        # x-coordinate of top-left corner of rectangle
+        x = self.pos[0]
+        # y-coordinate of top-left corner of rectangle
+        y = self.pos[1]
 
         if self.player1:
-            pygame.draw.rect(surface, self.color, (x, y, self.thickness, self.spread))
+            pygame.draw.rect(surface, self.color,
+                             (x, y, self.thickness, self.spread))
         else:
-            pygame.draw.rect(surface, self.color, (x, y, self.thickness, self.spread))
+            pygame.draw.rect(surface, self.color,
+                             (x, y, self.thickness, self.spread))
+
 
 if __name__ == '__main__':
     global length, width, b, p1, p2
@@ -163,13 +192,14 @@ if __name__ == '__main__':
     clock = pygame.time.Clock()
 
     while flag:
-        pygame.time.delay(60)           # 50 milliseconds (lower value = faster)
+        # 50 milliseconds (lower value = faster)
+        pygame.time.delay(60)
         clock.tick(60)                  # fps limit (lower value = slower)
-        b.move_ball()
         p1.move_paddle()
         p2.move_paddle()
 
-        flag = pong().event_quit()      # did the user close the window? If so, terminate program
+        # did the user close the window? If so, terminate program
+        flag = pong().event_quit()
         if not flag:                    # if user closed window, break loop too
             break
 
