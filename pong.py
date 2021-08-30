@@ -3,9 +3,11 @@
 # Visit www.github.com/blitzymango for project description and a future README file
 
 import random
+from tkinter.constants import VERTICAL
 import pygame
 import tkinter as tk
 from tkinter import messagebox
+import asyncio
 
 
 class pong(object):
@@ -13,8 +15,9 @@ class pong(object):
     w = 500
     r = 8
 
-    def __init__(self, color=(0, 0, 255)):
-        self.color = color
+    def __init__(self, color1=(0, 0, 255), color2=(255,255,255)):
+        self.color1 = color1
+        self.color2 = color2
 
     @staticmethod
     def event_quit() -> bool:
@@ -25,20 +28,28 @@ class pong(object):
         return True
 
     @staticmethod
-    def redrawWindow(surface):
-        global b, p1, p2
-
+    async def redrawWindow(surface):
         surface.fill((0, 0, 0))  # creates a background (black in this case)
-        b.draw_ball(surface)
-        p1.draw_paddle(surface)
-        p2.draw_paddle(surface)
+        asyncio.create_task(game.draw(surface))
         pygame.display.update()
+    
+    @staticmethod
+    async def move():
+        global p1, p2, b
+        p1.move()
+        p2.move()
+        await b.move()
 
     def message_box():
         pass
 
-    def draw():
-        pass
+    @staticmethod
+    async def draw(surface):
+        b.draw_ball(surface)
+        p1.draw_paddle(surface)
+        p2.draw_paddle(surface)
+        pygame.display.update()
+        await asyncio.sleep(0.01)
 
 
 class ball(pong):
@@ -49,68 +60,53 @@ class ball(pong):
     def __init__(self):
         super().__init__()
         self.pos = [length//2, width//2]
-        self.dirnx = 3
-        self.dirny = 3
+        self.dirnx = length//100
+        self.dirny = width//100
 
-    def move_ball(self):
-        self.dirnx = ball.speed_limit(self.dirnx)
-        self.dirny = ball.speed_limit(self.dirny)
+    async def horizontal_collision(self):
+        global p1, p2, b
+        asyncio.create_task(b.vertical_collision())
+         # If ball is moving right
+        if self.dirnx > 0:
+            if self.pos[0] + self.radius >= p1.location()[0]:
+                y_top1 = p1.location()[1]
+                y_bottom1 = y_top1 + p1.length()
+                if (self.pos[1] <= y_bottom1) and (self.pos[1] >= y_top1):
+                    self.dirnx = -self.dirnx
+            elif self.pos[0] + self.radius >= self.length:
+                self.dirnx = -self.dirnx
 
-        # if ball touches right side of screen
-        if self.pos[0] >= (self.length-self.radius-self.dirnx):
-            self.dirnx = -self.dirnx
-        # if ball touches left side of screen
-        elif self.pos[0] <= (self.radius+self.dirnx):
-            self.dirnx = -self.dirnx
-        # if ball touches top of screen
-        elif self.dirny < 0 and self.pos[1] <= (self.radius+self.dirny):
-            self.dirny = -self.dirny - random.randint(-1, 1)
-        # if ball touches bottom of screen
-        elif self.dirny > 0 and self.pos[1] >= (self.width-self.radius-self.dirny):
-            self.dirny = -self.dirny - random.randint(-1, 1)
+        # If ball is moving left
+        if self.dirnx < 0:
+            if self.pos[0] - self.radius <= p2.location()[0]+p2.width():
+                y_top2 = p2.location()[1]
+                y_bottom2 = y_top2 + p2.length()
+                if (self.pos[1] <= y_bottom2) and (self.pos[1] >= y_top2):
+                    self.dirnx = -self.dirnx
+            elif self.pos[0] + self.radius <= 0:
+                self.dirnx = -self.dirnx
 
+    async def vertical_collision(self):
+        # If ball is moving up
+        if self.dirny < 0:
+            # if ball touches top of screen
+            if self.pos[1] <= (self.radius):
+                self.dirny = -self.dirny
+
+        # If ball is moving down
+        if self.dirny > 0:
+            # if ball touches bottom of screen
+            if self.pos[1] >= (self.width-self.radius):
+                self.dirny = -self.dirny
+        await asyncio.sleep(0.01)
+
+    async def move(self):
         self.pos = [self.pos[0] + self.dirnx, self.pos[1] + self.dirny]
-
-    @staticmethod
-    def speed_limit(velocity) -> int:
-        if velocity > 7:
-            velocity = 7
-        elif velocity < -7:
-            velocity = -7
-        elif velocity == 0:
-            velocity = random.randint(-1, 1)
-        return velocity
+        await b.horizontal_collision()
 
     def draw_ball(self, surface):
         circleCenter = (self.pos[0], self.pos[1])
-        pygame.draw.circle(surface, self.color, circleCenter, self.radius)
-
-    def collision(self, player1):
-        global p1, p2
-        if player1:
-            pad_inst = p1
-        else:
-            pad_inst = p2
-
-        x_ball = self.pos[0]
-        y_ball = self.pos[1]
-
-        x_front = pad_inst.location()[0]
-        y_topleft = pad_inst.location()[1]
-        y_bottomleft = y_topleft + pad_inst.length()
-
-        ball_reach_right = x_ball + self.radius + self.dirnx
-        ball_reach_left = x_ball - self.radius*2 - self.dirnx
-
-        if (y_ball <= y_bottomleft+self.radius) and (y_ball >= y_topleft-self.radius):
-            if player1:
-                if (ball_reach_right >= x_front) and (ball_reach_right <= x_front + pad_inst.width()):
-                    self.dirnx = -self.dirnx - random.randint(-1, 1)
-            else:
-                if (ball_reach_left <= x_front + pad_inst.width()) and (ball_reach_left >= x_front):
-                    self.dirnx = -self.dirnx - random.randint(-1, 1)
-
-        self.pos = [self.pos[0] + self.dirnx, self.pos[1] + self.dirny]
+        pygame.draw.circle(surface, self.color2, circleCenter, self.radius)
 
 
 class paddle(pong):
@@ -138,14 +134,9 @@ class paddle(pong):
     def width(self):
         return self.thickness
 
-    def move_paddle(self, dirny=0):
-        global b
+    def move(self, dirny=0):
         self.dirny = dirny
         self.pos = [self.pos[0], self.pos[1] + self.dirny]
-
-        b.move_ball()                    # keep ball moving
-        # check if the ball collided with paddle first
-        b.collision(self.player1)
 
         keys = pygame.key.get_pressed()  # records that a key was pressed
         if self.player1:
@@ -158,7 +149,16 @@ class paddle(pong):
                 self.dirny = -width // 40
             elif keys[pygame.K_s]:
                 self.dirny = width // 40
+                
         self.pos[1] += self.dirny
+        # if self.pos[1]-self.spread//2-self.dirny < 0:
+        #     self.dirny = 0
+        # elif self.pos[1]+self.spread+self.dirny >= width:
+        #     self.dirny = 0
+        # else:
+        #     self.pos[1] += self.dirny
+
+
 
     def draw_paddle(self, surface):
         # x-coordinate of top-left corner of rectangle
@@ -167,15 +167,15 @@ class paddle(pong):
         y = self.pos[1]
 
         if self.player1:
-            pygame.draw.rect(surface, self.color,
+            pygame.draw.rect(surface, self.color1,
                              (x, y, self.thickness, self.spread))
         else:
-            pygame.draw.rect(surface, self.color,
+            pygame.draw.rect(surface, self.color1,
                              (x, y, self.thickness, self.spread))
 
 
 if __name__ == '__main__':
-    global length, width, b, p1, p2
+    global length, width, b, p1, p2, game
 
     length = 750
     width = 500
@@ -184,23 +184,23 @@ if __name__ == '__main__':
     b = ball()
     p1 = paddle(True)
     p2 = paddle(False)
+    game = pong()
 
     pygame.init()
     # create game and background with length x width size
     win = pygame.display.set_mode((length, width))
-    pong().redrawWindow(win)
+    asyncio.run(game.redrawWindow(win))
     clock = pygame.time.Clock()
 
     while flag:
         # 50 milliseconds (lower value = faster)
-        pygame.time.delay(60)
+        pygame.time.delay(30)
         clock.tick(60)                  # fps limit (lower value = slower)
-        p1.move_paddle()
-        p2.move_paddle()
+        asyncio.run(pong.move())
 
         # did the user close the window? If so, terminate program
-        flag = pong().event_quit()
+        flag = game.event_quit()
         if not flag:                    # if user closed window, break loop too
             break
 
-        pong().redrawWindow(win)
+        asyncio.run(game.redrawWindow(win))
