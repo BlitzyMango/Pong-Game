@@ -64,16 +64,14 @@ class ball(pong):
         self.dirny = width//100
 
     async def horizontal_collision(self):
-        global p1, p2, b
         asyncio.create_task(b.vertical_collision())
          # If ball is moving right
         if self.dirnx > 0:
             if self.pos[0] + self.radius >= p1.location()[0]:
                 y_top1 = p1.location()[1]
                 y_bottom1 = y_top1 + p1.length()
-                if (self.pos[1] <= y_bottom1) and (self.pos[1] >= y_top1):
-                    self.dirnx = -self.dirnx
-            elif self.pos[0] + self.radius >= self.length:
+                b.paddle_collision(p1, self.pos[1], y_top1, y_bottom1)
+            if self.pos[0] + self.radius > length:
                 self.dirnx = -self.dirnx
 
         # If ball is moving left
@@ -81,9 +79,8 @@ class ball(pong):
             if self.pos[0] - self.radius <= p2.location()[0]+p2.width():
                 y_top2 = p2.location()[1]
                 y_bottom2 = y_top2 + p2.length()
-                if (self.pos[1] <= y_bottom2) and (self.pos[1] >= y_top2):
-                    self.dirnx = -self.dirnx
-            elif self.pos[0] + self.radius <= 0:
+                b.paddle_collision(p2, self.pos[1], y_top2, y_bottom2)
+            if self.pos[0] + self.radius <= 0:
                 self.dirnx = -self.dirnx
 
     async def vertical_collision(self):
@@ -98,7 +95,14 @@ class ball(pong):
             # if ball touches bottom of screen
             if self.pos[1] >= (self.width-self.radius):
                 self.dirny = -self.dirny
-        await asyncio.sleep(0.01)
+        await asyncio.sleep(0)
+
+    def paddle_collision(self, paddle, yball, ytop, ybottom):
+        if (yball <= ybottom) and (yball >= ytop):
+            self.dirnx = -self.dirnx
+            if paddle.velocity() != 0:
+                self.dirny = paddle.velocity() // 2
+                
 
     async def move(self):
         self.pos = [self.pos[0] + self.dirnx, self.pos[1] + self.dirny]
@@ -112,27 +116,32 @@ class ball(pong):
 class paddle(pong):
     length = pong.l
     width = pong.w
-    thickness = length // 40             # thickness of paddle
-    # amount of vertical space paddle can use to hit the ball
-    spread = width // 5
+    pad_width = length // 40        # width of paddle
+    pad_length = width // 5         # length of paddle
+    center = width//2-pad_length//2 # y-coordinate used to center paddle
+    p1_space = length - pad_width*3 # space between wall and paddle1
+    p2_space = pad_width*2          # space between wall and paddle2
 
     def __init__(self, player1):
         super().__init__()
         self.player1 = player1
 
         if self.player1:
-            self.pos = (length-self.thickness*3, width//2-self.spread//2)
+            self.pos = (self.p1_space, self.center)
         else:
-            self.pos = (self.thickness*2, width//2-self.spread//2)
+            self.pos = (self.p2_space, self.center)
 
     def location(self):
         return self.pos
 
     def length(self):
-        return self.spread
+        return self.pad_length
 
     def width(self):
-        return self.thickness
+        return self.pad_width
+
+    def velocity(self):
+        return self.dirny
 
     def move(self, dirny=0):
         self.dirny = dirny
@@ -144,6 +153,7 @@ class paddle(pong):
                 self.dirny = -width // 40
             elif keys[pygame.K_DOWN]:
                 self.dirny = width // 40
+                
         else:
             if keys[pygame.K_w]:
                 self.dirny = -width // 40
@@ -151,9 +161,9 @@ class paddle(pong):
                 self.dirny = width // 40
                 
         self.pos[1] += self.dirny
-        # if self.pos[1]-self.spread//2-self.dirny < 0:
+        # if self.pos[1]-self.pad_length//2-self.dirny < 0:
         #     self.dirny = 0
-        # elif self.pos[1]+self.spread+self.dirny >= width:
+        # elif self.pos[1]+self.pad_length+self.dirny >= width:
         #     self.dirny = 0
         # else:
         #     self.pos[1] += self.dirny
@@ -168,10 +178,10 @@ class paddle(pong):
 
         if self.player1:
             pygame.draw.rect(surface, self.color1,
-                             (x, y, self.thickness, self.spread))
+                             (x, y, self.pad_width, self.pad_length))
         else:
             pygame.draw.rect(surface, self.color1,
-                             (x, y, self.thickness, self.spread))
+                             (x, y, self.pad_width, self.pad_length))
 
 
 if __name__ == '__main__':
