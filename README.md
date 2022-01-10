@@ -9,7 +9,7 @@ Make sure your versions of pip and Python are up-to-date or at least compatible 
 - asyncio
 - tkinter (will be removed in next commit)
 - fractions (will be removed in next commit)
-- 
+
 ## Motivation
 I began this project to test myself as a Python beginner and to see if I would enjoy a career in software development by coding casually. 
 
