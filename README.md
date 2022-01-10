@@ -1,3 +1,12 @@
 # Classic Pong Game
-This is a casual project I began developing recently (early August 2021). This application is still buggy, but it will see finishing touches being added very soon. I will keep this repository updated until it is complete.
+### Overview
+A simple game of Pong developed using the pygame module on Python.
+
+## Motivation
+I began this project to test myself as a Python beginner and to see if I would enjoy a career in software development by coding casually. 
+
+## Screen Recording
 ![Pong Game - Animated gif demo](pong-game.gif)
+
+## License
+None (public domain)
