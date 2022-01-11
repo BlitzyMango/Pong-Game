@@ -9,9 +9,9 @@ A simple game of Pong developed using the pygame module on Python.
 #### Required modules
 - Pygame
 - Asyncio
-###### Pip installations
-<b> PyPI </b>  
-- Shortcut
+#### Pip installations
+The pip commands below are recommended by the pypi.org website. Different installation methods are available on other websites, such as the [install instructions](https://www.pygame.org/wiki/GettingStarted)) on Pygame's website.
+- Shortcut (install both)
 ```
 pip install pygame, asyncio
 ```
@@ -24,6 +24,7 @@ pip install pygame
 ```
 pip install asyncio
 ```
+
 
 
 ## Motivation
