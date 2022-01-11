@@ -3,8 +3,8 @@
 A simple game of Pong developed using the pygame module on Python.
 
 ## Prerequisites
-<b>Minimum Python version(s)</b><br>
--Python 3.3 or Python 3.4 (preferred)<br>
+<b>Minimum Python version(s)</b>  
+-Python 3.3 or Python 3.4 (preferred)  
 <b>Pip installations:</b>
 - [Pygame](https://pypi.org/project/pygame/)
 '''
