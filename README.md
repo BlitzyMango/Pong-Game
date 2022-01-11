@@ -7,13 +7,13 @@ A simple game of Pong developed using the pygame module on Python.
 -Python 3.3 or Python 3.4 (preferred)  
 #### Pip installations:
 - [Pygame](https://pypi.org/project/pygame/)
----
+```
 pip install pygame
----
+```
 - [Asyncio](https://pypi.org/project/asyncio/)
----
+```
 pip install asyncio
----
+```
 
 
 ## Motivation
