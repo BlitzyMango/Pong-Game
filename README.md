@@ -6,13 +6,22 @@ A simple game of Pong developed using the pygame module on Python.
 #### Python version(s)
 - Python 3.3 or 3.4 (minimum)
 - Python 3.6 or higher (recommended for pygame performance)
-#### Pip installations
-- [Pygame](https://pypi.org/project/pygame/)
-```PyPI
+#### Required modules
+- Pygame
+- Asyncio
+###### Pip installations
+<b> PyPI </b>  
+- Shortcut
+```
+pip install pygame, asyncio
+```
+- Individual installations
+- - [Pygame](https://pypi.org/project/pygame/)
+```
 pip install pygame
 ```
-- [Asyncio](https://pypi.org/project/asyncio/)
-```PyPI
+- - [Asyncio](https://pypi.org/project/asyncio/)
+```
 pip install asyncio
 ```
 
