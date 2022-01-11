@@ -16,11 +16,11 @@ This installation method below was provided based on documentation from pypi.org
 pip install pygame, asyncio
 ```
 - Individual installations
-- - [Pygame](https://pypi.org/project/pygame/)
+  - [Pygame](https://pypi.org/project/pygame/)
 ```
 pip install pygame
 ```
-- - [Asyncio](https://pypi.org/project/asyncio/)
+  - [Asyncio](https://pypi.org/project/asyncio/)
 ```
 pip install asyncio
 ```
