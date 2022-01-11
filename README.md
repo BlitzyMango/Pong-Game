@@ -4,6 +4,7 @@ A simple game of Pong developed using the pygame module on Python.
 
 ## Prerequisites
 <b>Make sure your versions of pip and Python are up-to-date or at least compatible with the modules below.</b>
+<br>
 <b>Python modules</b>
 - pygame
 - asyncio
