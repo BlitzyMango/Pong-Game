@@ -3,13 +3,20 @@
 A simple game of Pong developed using the pygame module on Python.
 
 ## Prerequisites
-<b>Make sure your versions of pip and Python are up-to-date or at least compatible with the modules below.</b>
-<br>
-<b>Python modules</b>
-- pygame
-- asyncio
-- tkinter (will be removed in next commit)
-- fractions (will be removed in next commit)
+<b>Minimum Python version(s)</b>
+-Python 3.3 or Python 3.4 (preferred)
+
+<br><br/>
+
+<b>Pip installations:</b>
+- [Pygame](https://pypi.org/project/pygame/)
+'''
+pip install pygame
+'''
+- [Asyncio](https://pypi.org/project/asyncio/)
+'''
+pip install asyncio
+'''
 
 
 ## Motivation
