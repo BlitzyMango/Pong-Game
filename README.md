@@ -1,5 +1,5 @@
 # Classic Pong Game
-### Overview
+## Overview
 A simple game of Pong developed using the pygame module on Python.
 
 ## Prerequisites
@@ -27,7 +27,7 @@ pip install asyncio
 
 
 ## Motivation
-I began this project to test myself as a Python beginner and to explore software development as a possible career path
+I began this project to test myself as a beginner to OOP in Python and to explore software development as a possible career path
 
 ## Screen Recording
 ![Pong Game - Animated gif demo](pong-game.gif)
