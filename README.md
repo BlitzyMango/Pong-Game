@@ -1,33 +1,23 @@
-# Classic Pong Game
+# Pong Game
 ## Overview
 A simple game of Pong developed using the pygame module on Python.
 
-## Prerequisites
-#### Python version(s)
-- Python 3.3 or 3.4 (minimum)
-- Python 3.6 or higher (recommended for pygame performance)
-#### Required modules
-- Pygame
-- Asyncio
-#### Pip installations
-This installation method below was provided based on documentation from pypi.org, but other methods exist and can be used to install the necessary modules. The [installation](https://www.pygame.org/wiki/GettingStarted)) page on pygame.org, for instance, provides other ways to install and satisfy the pygame module requirement. 
-- Multiple (shortcut) installations
+## How to Run
+Currently, this repository does not have an executable for running the Pong game. It can only be run (or edited) using a Python interpreter/virtual environment that satisfies the following requirements:
+- Uses Python version 3.6 or higher
+- Has the `pygame` and `asyncio` modules installed, which can be obtained using the following command:
+  ```
+  pip install pygame, asyncio
+  ```
+If these requirements are met, you may start up an instance of Pong by running `pong.py` using one of these commands:
+### MacOS/Linux
 ```
-pip install pygame, asyncio
+python3 pong.py
 ```
-- Individual [pygame](https://pypi.org/project/pygame/) installation 
+### Windows
 ```
-pip install pygame
+python pong.py
 ```
-- Indivdual [asyncio](https://pypi.org/project/asyncio/) installation
-```
-pip install asyncio
-```
-
-
-
-## Motivation
-I began this project to test myself as a beginner to OOP in Python and to explore software development as a possible career path
 
 ## Screen Recording
 ![Pong Game - Animated gif demo](pong-game.gif)
